@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>计算图片平均色</title>
+
+</head>
+<body>
+<label for="picture-file">图片：</label><input disabled="disabled" id="picture-file" type="file"
+                                            accept=".jpg, .png, .jpeg, .webm, .bmp">
+<br>
+<br>
+<div id="result"></div>
+</body>
+<script>
+    const pictureFile = document.getElementById("picture-file");
+    const resultDiv = document.getElementById("result");
+    window.onload = () => {
+        pictureFile.disabled = false
+    };
+    pictureFile.oninput = () => {
+        pictureFile.disabled = true;
+        confirm()
+    };
+
+    function confirm() {
+        let fileReader = new FileReader();
+        if (pictureFile.files.length < 1) return;
+        let file = pictureFile.files[0];
+        fileReader.readAsDataURL(file);
+        if (fileReader.error) {
+            setLog('错误：无法读取文件', "cover-message");
+            return;
+        }
+        fileReader.onloadend = function readEnd() {
+            let imgUrl = fileReader.result.substring(0);
+            if (imgUrl === "") {
+                setLog("错误：没有上传图片");
+                return;
+            }
+            const img = new Image();
+            img.src = imgUrl;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const width = canvas.width = img.naturalWidth;
+                const height = canvas.height = img.naturalHeight;
+
+                ctx.drawImage(img, 0, 0);
+
+                const imageData = ctx.getImageData(0, 0, width, height);
+                const data = imageData.data;
+                let r = 0;
+                let g = 0;
+                let b = 0;
+
+                for (let i = 0, l = data.length; i < l; i += 4) {
+                    r += data[i];
+                    g += data[i + 1];
+                    b += data[i + 2];
+                }
+
+                r = Math.floor(r / (data.length / 4));
+                g = Math.floor(g / (data.length / 4));
+                b = Math.floor(b / (data.length / 4));
+                setLog("(" + r + ", " + g + ", " + b + ")<br>#" + r.toString(16).toUpperCase() + g.toString(16).toUpperCase() + b.toString(16).toUpperCase());
+            };
+        };
+    }
+
+    function setLog(msg) {
+        resultDiv.innerHTML = msg;
+    }
+</script>
+</html>
